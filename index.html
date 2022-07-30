@@ -43,7 +43,7 @@
             <video id="video" playsinline autoplay style="width: 1px;"></video>
             <button class="btn btn-primary mb-2" id="cambiar-camara" onclick="cambiarCamara();">Cambiar camara</button>
             <canvas id="canvas" width="400" height="400" style="max-width: 100%;"></canvas>
-            <canvas id="othercanvas" width="150" height="150" style="display: none"></canvas>
+            <canvas id="othercanvas" width="28" height="28" style="display: none"></canvas>
             <div id="resultado"></div>            
           </div>
         </div>
@@ -147,30 +147,36 @@
       function predecir() {
           if (modelo != null) {
               //Pasar canvas a version 28x28
-            resample_single(canvas, 28, 28, smallcanvas);
+              resample_single(canvas, 28, 28, othercanvas);
 
-            var ctx2 = othercanvas.getContext("2d");
+              var ctx2 = othercanvas.getContext("2d");
 
-            var imgData = ctx2.getImageData(0,0,28,28);
-            var arr = []; //El arreglo completo
-            var arr28 = []; //Al llegar a 28 posiciones se pone en 'arr' como un nuevo indice
-            for (var p=0, i=0; p < imgData.data.length; p+=4) {
-                var valor = imgData.data[p+3]/255;
-                arr28.push([valor]); //Agregar al arr28 y normalizar a 0-1. Aparte queda dentro de un arreglo en el indice 0... again
-                if (arr28.length == 28) {
-                    arr.push(arr28);
-                    arr28 = [];
-                }
-            }
+              var imgData = ctx2.getImageData(0,0,28,28);
+              var arr = []; //El arreglo completo
+              var arr100 = []; //Al llegar a arr150 posiciones se pone en 'arr' como un nuevo indice
+              for (var p=0, i=0; p < imgData.data.length; p+=4) {
+                  var red = imgData.data[p]/255;
+                  var green = imgData.data[p+1]/255;
+                  var blue = imgData.data[p+2]/255;
 
-            arr = [arr]; //Meter el arreglo en otro arreglo por que si no tio tensorflow se enoja >:(
-            //Nah basicamente Debe estar en un arreglo nuevo en el indice 0, por ser un tensor4d en forma 1, 28, 28, 1
-            var tensor4 = tf.tensor4d(arr);
-            var resultados = modelo.predict(tensor4).dataSync();
-            var mayorIndice = resultados.indexOf(Math.max.apply(null, resultados));
-            
-            console.log("Prediccion", mayorIndice);
-            document.getElementById("resultado").innerHTML = mayorIndice;
+                  var gris = (red+green+blue)/3;
+
+                  arr100.push([gris]); //Agregar al arr150 y normalizar a 0-1. Aparte queda dentro de un arreglo en el indice 0... again
+                  if (arr100.length == 28) {
+                      arr.push(arr100);
+                      arr100 = [];
+                  }
+              }
+
+              arr = [arr]; //Meter el arreglo en otro arreglo por que si no tio tensorflow se enoja >:(
+              //Nah basicamente Debe estar en un arreglo nuevo en el indice 0, por ser un tensor4d en forma 1, 150, 150, 1
+              var tensor4 = tf.tensor4d(arr);
+              var resultados = modelo.predict(tensor4).dataSync();
+              var mayorIndice = resultados.indexOf(Math.max.apply(null, resultados));
+
+              var clases = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'];
+              console.log("Prediccion", clases[mayorIndice]);
+              document.getElementById("resultado").innerHTML = clases[mayorIndice];
           }
 
           setTimeout(predecir, 150);
