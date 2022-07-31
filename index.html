@@ -174,9 +174,9 @@
               var resultados = modelo.predict(tensor4).dataSync();
               var mayorIndice = resultados.indexOf(Math.max.apply(null, resultados));
 
-              var clases = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'];
-              console.log("Prediccion", clases[mayorIndice]);
-              document.getElementById("resultado").innerHTML = clases[mayorIndice];
+              // var clases = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot'];
+              console.log("Prediccion", mayorIndice);
+              document.getElementById("resultado").innerHTML = mayorIndice;
           }
 
           setTimeout(predecir, 150);
